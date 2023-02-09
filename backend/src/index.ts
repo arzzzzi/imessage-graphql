@@ -6,7 +6,6 @@ import http from 'http';
 import cors from 'cors';
 import { json } from 'body-parser';
 import typeDefs from './graphql/typedefs';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import resolvers from './graphql/resolvers';
 
 interface MyContext {
@@ -16,13 +15,9 @@ const main = async () => {
   const app = express();
   const httpServer = http.createServer(app);
 
-  const schema = makeExecutableSchema({
+  const server = new ApolloServer<MyContext>({
     typeDefs,
     resolvers,
-  });
-
-  const server = new ApolloServer<MyContext>({
-    schema,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
   await server.start();
