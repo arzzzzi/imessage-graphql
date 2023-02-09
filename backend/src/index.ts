@@ -5,28 +5,38 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { json } from 'body-parser';
-import { typeDefs, resolvers } from './schema';
+import typeDefs from './graphql/typedefs';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import resolvers from './graphql/resolvers';
 
 interface MyContext {
   token?: String;
 }
+const main = async () => {
+  const app = express();
+  const httpServer = http.createServer(app);
 
-const app = express();
-const httpServer = http.createServer(app);
-const server = new ApolloServer<MyContext>({
-  typeDefs,
-  resolvers,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-});
-await server.start();
-app.use(
-  '/graphql',
-  cors<cors.CorsRequest>(),
-  json(),
-  expressMiddleware(server, {
-    context: async ({ req }) => ({ token: req.headers.token }),
-  }),
-);
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  });
 
-await new Promise<void>((resolve) => httpServer.listen({ port: 4000 }, resolve));
-console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+  const server = new ApolloServer<MyContext>({
+    schema,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  });
+  await server.start();
+  app.use(
+    '/graphql',
+    cors<cors.CorsRequest>(),
+    json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => ({ token: req.headers.token }),
+    }),
+  );
+
+  await new Promise<void>((resolve) => httpServer.listen({ port: 4000 }, resolve));
+  console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+};
+
+main().catch((err) => console.log(err));
