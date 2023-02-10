@@ -5,6 +5,7 @@ import { Session } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import UserOperations from '../../graphql/operations/user';
+import toast from 'react-hot-toast';
 
 interface IAuthProps {
   session: Session | null;
@@ -14,18 +15,32 @@ interface IAuthProps {
 const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
   const [username, setUsername] = useState('');
 
-  const [createUsername, { data, loading, error }] = useMutation<
+  const [createUsername, { loading, error }] = useMutation<
     CreateUsernameData,
     CreateUsernameVariables
   >(UserOperations.Mutations.createUsername);
 
-  console.log('Data', data, loading, error);
-
   const onSubmit = async () => {
     if (!username) return;
     try {
-      await createUsername({ variables: { username } });
+      const { data } = await createUsername({ variables: { username } });
+
+      if (!data?.createUsername) {
+        throw new Error();
+      }
+
+      if (data.createUsername.error) {
+        const {
+          createUsername: { error },
+        } = data;
+        throw new Error(error);
+      }
+
+      toast.success('Username successfully created');
+
+      reloadSession();
     } catch (error) {
+      toast.error('There was an error');
       console.log('onSubmit error', error);
     }
   };
