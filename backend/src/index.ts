@@ -10,7 +10,7 @@ import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import * as dotenv from 'dotenv';
 import { getSession } from 'next-auth/react';
-import { GraphQLContext } from './util/types';
+import { GraphQLContext, Session } from './util/types';
 import { PrismaClient } from '@prisma/client';
 
 interface MyContext {
@@ -47,7 +47,7 @@ const main = async () => {
       context: async ({ req, res }): Promise<GraphQLContext> => {
         const session = await getSession({ req });
         console.log('CONTEXT SESSION', session);
-        return { session, prisma };
+        return { session: session as Session, prisma };
       },
     }),
   );

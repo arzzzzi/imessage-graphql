@@ -19,9 +19,28 @@ const resolvers = {
         };
       }
 
-      const { id } = session.user;
+      const { id: userId } = session.user;
 
       try {
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            username,
+          },
+        });
+        if (existingUser) {
+          return {
+            error: 'Username already taken. Try another',
+          };
+        }
+        await prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            username,
+          },
+        });
+        return { success: true };
       } catch (error) {
         console.log('createUsername error', error);
         return {
