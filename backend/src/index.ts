@@ -9,6 +9,9 @@ import { json } from 'body-parser';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import * as dotenv from 'dotenv';
+import { getSession } from 'next-auth/react';
+import { GraphQLContext } from './util/types';
+import { PrismaClient } from '@prisma/client';
 
 interface MyContext {
   token?: String;
@@ -31,13 +34,21 @@ const main = async () => {
     origin: process.env.CLIENT_ORIGIN,
     credentials: true,
   };
+
+  const prisma = new PrismaClient();
+  // const pubsub
+
   await server.start();
   app.use(
     '/graphql',
     cors<cors.CorsRequest>(corsOptions),
     json(),
     expressMiddleware(server, {
-      context: async ({ req }) => ({ token: req.headers.token }),
+      context: async ({ req, res }): Promise<GraphQLContext> => {
+        const session = await getSession({ req });
+        console.log('CONTEXT SESSION', session);
+        return { session, prisma };
+      },
     }),
   );
 
