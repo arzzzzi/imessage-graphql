@@ -8,12 +8,7 @@ interface ConversationsWrapperProps {
 
 const ConversationsWrapper: React.FC<ConversationsWrapperProps> = ({ session }) => {
   return (
-    <Box
-      width={{ base: '100%', md: '400px' }}
-      border="1px solid red"
-      bg="whiteAlpha.100"
-      py={6}
-      px={3}>
+    <Box width={{ base: '100%', md: '400px' }} bg="whiteAlpha.100" py={6} px={3}>
       {/* Skeleton Loader */}
       <ConverstionList session={session} />
     </Box>
